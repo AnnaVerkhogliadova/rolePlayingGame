@@ -1,6 +1,7 @@
 import java.util.Random;
+import java.util.concurrent.Callable;
 
-public class Battle extends Thread {
+public class Battle implements Callable<BattleState> {
     private static final Random RANDOM = new Random();
 
     Monsters monsters;
@@ -11,13 +12,13 @@ public class Battle extends Thread {
         this.player = player;
     }
 
-    public void run() {
-        hit(monsters, player);
+    public BattleState call() {
+        return hit(monsters, player);
     }
 
-    public void hit(Monsters monsters, Player player) {
+    public BattleState hit(Monsters monsters, Player player) {
         boolean isPlayerAttack = RANDOM.nextBoolean();
-        World world = new World();
+
         while (true) {
             isPlayerAttack = !isPlayerAttack;
             if (isPlayerAttack) {
@@ -28,8 +29,7 @@ public class Battle extends Thread {
                         System.out.println("Бой выигран");
                         player.setGold(player.getGold() + monsters.getGold());
                         player.setExperience(player.getExperience() + monsters.getExperience());
-                        world.choice();
-                        break;
+                        return BattleState.WIN;
                     } else {
                         System.out.println("Отняли " + playerAttack + " hp у монстра");
                         monsters.setHp(newHpMonster);
@@ -43,7 +43,7 @@ public class Battle extends Thread {
                     int newHpPlayer = player.getHp() - monsterAttack;
                     if (newHpPlayer <= 0) {
                         System.out.println("Бой проигран");
-                        break;
+                        return BattleState.LOSE;
                     } else {
                         System.out.println("Отняли " + monsterAttack + " hp у игрока");
                         player.setHp(newHpPlayer);
